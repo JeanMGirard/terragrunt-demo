@@ -1,0 +1,10 @@
+min_required_version: v1.27.6
+# minimum_severity: CRITICAL, HIGH, MEDIUM, LOW.
+minimum_severity: MEDIUM
+severity_overrides: { }
+#  CUS002: ERROR
+#  aws-s3-enable-versioning: HIGH
+#include:
+#  - CUS002
+#  - aws-s3-enable-versioning
+exclude: [ ]

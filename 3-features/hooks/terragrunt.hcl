@@ -1,15 +1,6 @@
 
-terragrunt_version_constraint = "~> 0.38"
-retry_max_attempts            = 2
-retry_sleep_interval_sec      = 10
-retryable_errors              = [
-  "(?s).*timeout while waiting for plugin to start.*",
-  "(?s).*Failed to install provider from shared cache.*",
-  "(?s).*Failed to download module.*"
-]
 
-
-# ignore for now
+# ignore this
 include "root" {
   path = find_in_parent_folders()
 }
@@ -31,6 +22,7 @@ locals {
     backup  = "${get_original_terragrunt_dir()}/outputs/tfstate.backup"
     costs   = "${get_original_terragrunt_dir()}/outputs/infracost"
     outputs = "${get_original_terragrunt_dir()}/outputs/outputs.tfvars"
+    diagram = "${get_original_terragrunt_dir()}/outputs/inframap"
   }
   formats = {
     plan   = ["json", "txt"]    # txt, json
@@ -80,20 +72,14 @@ terraform {
   }
 
 
-  after_hook "plan_formats" {
+  after_hook "formats" {
     commands = ["plan"]
     execute  = ["sh", "-c", join(" && ", compact(concat([
       "terraform show -no-color -json ${local.files.plan} | jq -r '.' > ${local.files.plan}.json",
       contains(local.formats.plan, "txt")    ? "terraform show -no-color ${local.files.plan} > ${local.files.plan}.txt" : ""
     ])))]
   }
-  after_hook "plan_graphs" {
-    commands = ["plan"]
-    execute  = ["sh", "-c", join(" && ", compact(concat([
-      contains(local.formats.graphs, "module") ? "terraform graph -draw-cycles -plan=${local.files.plan} > ${local.files.plan}.dot" : ""
-    ])))]
-  }
-  after_hook "plan_graphs" {
+  after_hook "graph" {
     commands = ["plan"]
     execute  = ["sh", "-c", join(" && ", compact(concat([
       contains(local.formats.graphs, "module") ? "terraform graph -draw-cycles -plan=${local.files.plan} | dot -Tpng > ${local.files.plan}.png" : ""
@@ -105,8 +91,14 @@ terraform {
       "terraform-docs markdown table --output-file README.md --output-mode inject ."
     ])))]
   }
-  after_hook "plan_costs" {
-    commands =["plan"] # "plan"
+  after_hook "diagram" {
+    commands = ["plan"]
+    execute  = ["sh", "-c", join(" && ", compact(concat([
+      "inframap generate --clean=false --connections=false ./ | dot -Tpng  > '${local.files.diagram}.png'"
+    ])))]
+  }
+  after_hook "costs" {
+    commands =["plan"]
     execute  = ["sh", "-c", join(" && ", compact(concat(
       [length(local.formats.costs) >= 1  ? "infracost breakdown --path ${local.files.plan}.json --format json | jq -r '.' > ${local.files.costs}.json" : ""],
       formatlist("infracost output --show-skipped --path ${local.files.costs}.json --format %s > ${local.files.costs}.%s",
@@ -116,7 +108,7 @@ terraform {
           ], [
             "table", "html", "github", "gitlab", "azure-repos", "bitbucket", "slack"
           ], setsubtract(local.formats.costs, ["json", "diff"])),
-          matchkeys(["txt", "html", "md", "md", "md", "md", "slack.json"], [
+          matchkeys(["txt --no-color", "html", "md", "md", "md", "md", "slack.json"], [
             "table", "html", "github", "gitlab", "azure-repos", "bitbucket", "slack"
           ], setsubtract(local.formats.costs, ["json", "diff"]))
       ),
@@ -125,14 +117,12 @@ terraform {
     ]
   }
 
-  after_hook "clean" {
-    commands = anytrue([(get_platform() == "windows"), (!local.exists.plan)]) ? [] : local.cmds.state_change
-    execute  = [
-      "sh", "-c", join(" ", [
-        local.exists.plan ? "rm ${local.files.plan}*" : ""
-      ])
-    ]
-  }
+#  after_hook "clean" {
+#    commands = anytrue([(get_platform() == "windows"), (!local.exists.plan)]) ? [] : local.cmds.state_change
+#    execute  = ["sh", "-c", join(" ", [
+#      local.exists.plan ? "rm ${local.files.plan}*" : ""
+#    ])]
+#  }
 
   after_hook "outputs" {
     commands = (get_platform() == "windows") ? [] : local.cmds.output_change
