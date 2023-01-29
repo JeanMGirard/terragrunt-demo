@@ -1,0 +1,8 @@
+
+
+tfplan*
+generate/providers.tf
+generate/generated.tf
+hooks/providers.tf
+hooks/versions.tf
+hooks/outputs

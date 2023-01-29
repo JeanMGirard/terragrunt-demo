@@ -1,0 +1,20 @@
+
+# not ususally ignored, for demo only
+.terraform.lock.hcl
+
+# =========================================
+/.env/
+/volume/
+
+**/.terraform/
+**/.terraform.d/
+**/.terragrunt-cache/
+**/*.tfvars
+*.tfstate
+*.tfstate.*
+crash.log
+.env.yml
+**/_terragrunt.tf
+graph.svg
+localstack_providers_override.tf
+Brewfile.lock.json
