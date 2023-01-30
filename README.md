@@ -65,7 +65,7 @@ This is a demo using [terraform](https://www.terraform.io) with [terragrunt](htt
 
 ```bash
 brew bundle install
-python -m venv ./.env && source ./.env/bin/activate
+python -m venv ./venv && source ./venv/bin/activate
 pip install -r requirements.txt
 ```
 

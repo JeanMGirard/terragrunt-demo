@@ -7,6 +7,7 @@ SCRIPT_DIR="$(git rev-parse --show-toplevel)";
 export AWS_SECRET_ACCESS_KEY="test"
 export AWS_ACCESS_KEY_ID="test"
 export TERRAGRUNT_DOWNLOAD="$SCRIPT_DIR/.terragrunt-cache"
+export TERRAGRUNT_PARALLELISM=4
 export TF_PLUGIN_CACHE_DIR="$SCRIPT_DIR/.terraform.d/plugin-cache"
 mkdir -p "$TERRAGRUNT_DOWNLOAD" "$TF_PLUGIN_CACHE_DIR"
 

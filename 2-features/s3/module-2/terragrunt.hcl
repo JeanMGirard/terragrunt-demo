@@ -13,7 +13,7 @@ dependency "module_1" {
 }
 
 inputs = {
-  bucket_name = join("-", [dependency.module_1.outputs.s3_bucket_arn, "-logs"])
+  bucket_name = join("-", [dependency.module_1.outputs.s3_bucket_name, "logs"])
 }
 
 
